@@ -47,6 +47,10 @@ grant select on dba_directories to {username} with grant option;
 - PL4PY.pck
 - pl4py_func_list_v.sql
 
+#### 第六步
+编辑PL4PY包，修改头部声明中的 G_OS_PYEXE_PATH 参数，将赋值改为你python主程序的全路径，然后重新编译
+ VARCHAR2(200) := 'C:\Users\DarkAthena\AppData\Local\Programs\Python\Python39\python.exe';
+
 ## 使用举例
 
 #### 一、启动服务
