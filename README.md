@@ -86,9 +86,9 @@ begin
 end;
 ```
 
-memo:服务被设计成长期运行的schedule_job，函数动态切换，因此除非要完全停止或者检查问题，一般不需要执行 PL4PY.stop_service
 
 ## 更复杂的函数例子
+1.基于原始数据计算一个时间和速度相关性的模型，然后输入时间，返回速度
 ```sql
 BEGIN
   PL4PY.create_func(i_func_name => 'forecast_speed.py',
@@ -109,3 +109,31 @@ select pl4py.call_func_Eval(i_func_name =>'forecast_speed.py', i_data=>'11') r f
 
 {"speed": 65.03276500414789}
 ```
+
+2.传入一个sql，获得sql中的所有表或视图名称
+将 https://github.com/Dark-Athena/list_table_sql-py 中的所有文件下载到安装步骤第二步中的文件夹，  
+比如 “F:\oracle\PY_FILE”  
+然后在数据库中以实际文件的方式创建函数  
+```sql
+BEGIN
+  PL4PY.create_func(i_func_name => 'list_table_sql.py',
+                    i_dir  => 'PY_FILE',
+                    i_file_name  =>'list_table_sql.py');
+END;
+  
+declare
+  r varchar2(4000);
+  i_data varchar2(4000);
+begin
+  i_data:='{"sql":"select abc from def,ghi j,k.lmn o","mode":"T"}';
+  r := pl4py.call_func_Eval(i_func_name =>'list_table_sql.py', i_data=>i_data);
+  dbms_output.put_line(r);
+end;
+
+{"tablename": ["def", "ghi", "k.lmn"]}
+```  
+
+## 注意事项:
+1. 服务被设计成长期运行的schedule_job，函数动态切换，因此除非要完全停止或者检查问题，一般不需要执行 PL4PY.stop_service   
+2. i_func_name参数必须带后缀 ".py"  
+
