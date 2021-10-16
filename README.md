@@ -1,14 +1,17 @@
 # pl4py
-在oracle数据库中使用自定义python函数（不是21c版本中的OML4PY）  
+项目地址 https://github.com/Dark-Athena/pl4py
+
+使用本程序，你可以在oracle数据库中使用自定义python函数
+（不是21c版本中的OML4PY [【ORACLE】在ORACLE数据库中启用机器学习功能（OML）以支持PYTHON脚本的运行](https://www.darkathena.top/archives/oml4py-server-setup) ）  
 这是开发中的版本，请勿用于生产环境  
 请确保oracle数据库版本至少为10g  
 数据库操作系统上需要安装python  
 为了避免一些不可控的情况，需要在程序中提前手工指定python主程序的全路径  
 目前只在windows环境中测试通过  
 
-原理：  
-使用schedule_job启动python的flask服务，  
-通过utl_file包将用户自定义函数生成文件保存到操作系统  
+#### 原理：  
+使用schedule_job启动python的flask服务  
+通过utl_file包将用户自定义函数生成py文件保存到操作系统  
 使用utl_http包发送请求到flask，传入函数名称及参数数据  
 flask动态从文件加载python函数，并将参数数据传入函数，获得返回值  
 此时，plsql中可获得python函数返回的结果  
@@ -46,10 +49,6 @@ grant select on dba_directories to {username} with grant option;
 - PL4PY_FUNC_LIST_TRI.trg
 - PL4PY.pck
 - pl4py_func_list_v.sql
-
-#### 第六步
-编辑PL4PY包，修改头部声明中的 G_OS_PYEXE_PATH 参数，将赋值改为你python主程序的全路径，然后重新编译
- VARCHAR2(200) := 'C:\Users\DarkAthena\AppData\Local\Programs\Python\Python39\python.exe';
 
 ## 使用举例
 
@@ -115,9 +114,8 @@ select pl4py.call_func_Eval(i_func_name =>'forecast_speed.py', i_data=>'11') r f
 ```
 
 2. 传入一个sql，获得sql中的所有表或视图名称
-将 https://github.com/Dark-Athena/list_table_sql-py 中的所有文件下载到安装步骤第二步中的文件夹，  
-比如 “F:\oracle\PY_FILE”  
-然后在数据库中以实际文件的方式创建函数  
+将https://github.com/Dark-Athena/list_table_sql-py中的所有文件下载到 安装步骤第二步中的文件夹，比如 “F:\oracle\PY_FILE”
+然后在数据库中以实际文件的方式创建函数
 ```sql
 BEGIN
   PL4PY.create_func(i_func_name => 'list_table_sql.py',
@@ -138,6 +136,6 @@ end;
 ```  
 
 ## 注意事项:
-1. 服务被设计成长期运行的schedule_job，函数动态切换，因此除非要完全停止或者检查问题，一般不需要执行 PL4PY.stop_service   
-2. i_func_name参数必须带后缀 ".py"  
+1. 服务被设计成长期运行的schedule_job，函数动态切换，因此除非要完全停止或者检查问题，一般不需要执行 PL4PY.stop_service
+2. i_func_name参数必须带后缀 ".py"
 
