@@ -68,7 +68,8 @@ END;
 #### 三、使用函数
 ```sql
 select  pl4py.call_func_Eval('sample_f.py', '8') r from dual;
->64
+
+64
 ```
 
 #### 四、删除函数
@@ -86,3 +87,25 @@ end;
 ```
 
 memo:服务被设计成长期运行的schedule_job，函数动态切换，因此除非要完全停止或者检查问题，一般不需要执行 PL4PY.stop_service
+
+## 更复杂的函数例子
+```sql
+BEGIN
+  PL4PY.create_func(i_func_name => 'forecast_speed.py',
+                    i_contents  => q'{import numpy
+from sklearn.metrics import r2_score
+import matplotlib.pyplot as plt
+def forecast_speed(hour):
+    x = [1,2,3,5,6,7,8,9,10,12,13,14,15,16,18,19,21,22]
+    y = [100,90,80,60,60,55,60,65,70,70,75,76,78,79,90,99,99,100]
+    mymodel = numpy.poly1d(numpy.polyfit(x, y, 3))
+    myline = numpy.linspace(1, 23, 100)
+    speed = mymodel(float(hour))
+    return {'speed':speed}
+}');
+END;
+
+select pl4py.call_func_Eval(i_func_name =>'forecast_speed.py', i_data=>'11') r from dual
+
+{"speed": 65.03276500414789}
+```
