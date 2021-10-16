@@ -114,7 +114,8 @@ select pl4py.call_func_Eval(i_func_name =>'forecast_speed.py', i_data=>'11') r f
 ```
 
 2. 传入一个sql，获得sql中的所有表或视图名称
-将https://github.com/Dark-Athena/list_table_sql-py中的所有文件下载到 安装步骤第二步中的文件夹，比如 “F:\oracle\PY_FILE”
+将 https://github.com/Dark-Athena/list_table_sql-py 
+中的所有文件下载到安装步骤第二步中的文件夹，比如 “F:\oracle\PY_FILE”
 然后在数据库中以实际文件的方式创建函数
 ```sql
 BEGIN
