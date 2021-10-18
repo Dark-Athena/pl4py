@@ -1,14 +1,14 @@
 # pl4py
 项目地址 https://github.com/Dark-Athena/pl4py
 
-this pkg provide a common way to call python function in oracle plsql .
-after install ,you can create python function and use it without logging db'OS  .
-WARNING: This is a development pkg. Do not use it in a production deployment  .
+this pkg provide a common way to call python function in oracle plsql .   
+after install ,you can create python function and use it without logging db'OS  .   
+WARNING: This is a development pkg. Do not use it in a production deployment  .   
 
  Requirements:
- Operating System :windows
- Python Version:python 3 at least
- Oracle Database Release : 10g at least
+ - Operating System :windows   
+ - Python Version:python 3 at least   
+ - Oracle Database Release : 10g at least  
 
 使用本程序，你可以在oracle数据库中使用自定义python函数
 （不是21c版本中的OML4PY [【ORACLE】在ORACLE数据库中启用机器学习功能（OML）以支持PYTHON脚本的运行](https://www.darkathena.top/archives/oml4py-server-setup) ）  
