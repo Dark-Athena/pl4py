@@ -1,6 +1,15 @@
 # pl4py
 项目地址 https://github.com/Dark-Athena/pl4py
 
+this pkg provide a common way to call python function in oracle plsql .
+after install ,you can create python function and use it without logging db'OS  .
+WARNING: This is a development pkg. Do not use it in a production deployment  .
+
+ Requirements:
+ Operating System :windows
+ Python Version:python 3 at least
+ Oracle Database Release : 10g at least
+
 使用本程序，你可以在oracle数据库中使用自定义python函数
 （不是21c版本中的OML4PY [【ORACLE】在ORACLE数据库中启用机器学习功能（OML）以支持PYTHON脚本的运行](https://www.darkathena.top/archives/oml4py-server-setup) ）  
 这是开发中的版本，请勿用于生产环境  
@@ -10,7 +19,7 @@
 目前只在windows环境中测试通过  
 
 #### 原理：  
-使用schedule_job启动python的flask服务  
+使用schedule_job启动python的flask服务(主要为避免登录到操作系统进行操作，能让开发人员实现纯数据库内操作)  
 通过utl_file包将用户自定义函数生成py文件保存到操作系统  
 使用utl_http包发送请求到flask，传入函数名称及参数数据  
 flask动态从文件加载python函数，并将参数数据传入函数，获得返回值  
