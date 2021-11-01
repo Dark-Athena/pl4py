@@ -7,8 +7,13 @@ create or replace package PL4PY is
   github:github.com/Dark-Athena
   email:darkathena@qq.com
   created_date:2021-10-14
-  last_modified_date:2021-10-16
-  */
+  last_modified_date:2021-11-01
+  
+  MODIFIED   (YYYY-MM-DD)  WHAT?
+  DarkAthena  2021-11-01  update stop_service by send request，and remove running.py from G_service_Script
+  DarkAthena  2021-11-01  fix message when call "call_func_Eval" with service is not running
+  DarkAthena  2021-11-01  add base on linux suport 
+   */
   
   /*
   Copyright DarkAthena(darkathena@qq.com)
@@ -25,7 +30,7 @@ create or replace package PL4PY is
      See the License for the specific language governing permissions and
      limitations under the License.
   */
-  G_OS_PYEXE_PATH VARCHAR2(200) := 'C:\Users\DarkAthena\AppData\Local\Programs\Python\Python39\python.exe';
+  G_OS_PYEXE_PATH VARCHAR2(200) := 'C:\Users\wangyongyu\AppData\Local\Programs\Python\Python39\python.exe';--'/bin/python3'
   G_service_NAME  VARCHAR2(20) := 'py_http_service';
   G_service_port  number := 8888;
   G_forbid        varchar2(1) := 'Y';
@@ -38,6 +43,7 @@ create or replace package PL4PY is
   PRAGMA EXCEPTION_INIT(invalid_path, -29280);
   PRAGMA EXCEPTION_INIT(invalid_operation, -29283);
   function file2clob(p_dir varchar2, p_file_name varchar2) return clob;
+  function get_os_type return varchar2;
 
   /*--create a user-defined Python function ,and the name is same as i_func_name's shortname
   BEGIN
@@ -78,7 +84,7 @@ create or replace package PL4PY is
   procedure stop_service;
   
   /*--call a user-defined Python function 
-  select  pl4py.call_func_Eval(i_func_name =>'sample_f.py', i_data=>6) r from dual;
+  select  pl4py.call_func_Eval(i_func_name =>'sample_f.py', i_data=>'6') r from dual;
   */
   function call_func_Eval(i_func_name varchar2, i_data clob) return clob;
 
@@ -88,8 +94,13 @@ create or replace package body PL4PY is
   G_service_Script VARCHAR2(4000) := q'{import flask, json,os
 import importlib
 from flask import request
-import running
 server = flask.Flask(__name__)
+def shutdown_server():
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
+
 @server.route('/func', methods=['get', 'post'])
 def login():
     filename=request.values.get('func_name')
@@ -102,8 +113,13 @@ def login():
     a=my_function(data)
     return json.dumps(a)
 
+@server.route('/shutdown', methods=['get', 'post'])
+def shutdown():
+    shutdown_server()
+    return 'Server shutting down...'
+
 if __name__ == '__main__':
-    server.run(debug=True, port=8888, host='0.0.0.0')}';
+    server.run(debug=True, use_reloader=True, port=port123321, host='0.0.0.0')}';
 
   FUNCTION post(i_url VARCHAR2, i_post_data CLOB) RETURN VARCHAR2 IS
     req               utl_http.req;
@@ -166,7 +182,18 @@ if __name__ == '__main__':
     end loop;
     return o_clob;
   END;
-  
+
+  function get_os_type return varchar2 is
+    l_os_type varchar2(2000);
+  begin
+    select decode(count(1), 0, 'linux', 'windows')
+      into l_os_type
+      from V$PROCESS
+     where program like '%ORACLE.EXE%'
+       and rownum = 1;
+    RETURN l_os_type;
+  end;
+
   function get_os_dir return varchar2 is
     l_os_dir varchar2(2000);
   begin
@@ -177,39 +204,24 @@ if __name__ == '__main__':
      where d.DIRECTORY_NAME = G_PY_FILE_dir;
     RETURN l_os_dir;
   end;
-  
-  PROCEDURE os_cmd(I_db_Path  IN VARCHAR2,
+
+  PROCEDURE os_cmd( --I_db_Path  IN VARCHAR2,
                    l_cmd      IN VARCHAR2,
                    I_job_name IN VARCHAR2) IS
   
-    l_dir varchar2(4000);
   begin
-    select h.DIRECTORY_PATH
-      into l_dir
-      from ALL_DIRECTORIES h
-     where h.DIRECTORY_NAME = I_db_Path
-       and rownum = 1;
-  
-    BEGIN
+    if get_os_type = 'windows' then
+    
       SYS.DBMS_SCHEDULER.CREATE_JOB(job_name        => I_job_name,
                                     start_date      => sysdate +
                                                        5 / 24 / 60 / 60,
                                     repeat_interval => 'Freq=Secondly;Interval=5',
                                     end_date        => NULL,
-                                    job_class       => 'DEFAULT_JOB_CLASS',
                                     job_type        => 'EXECUTABLE',
                                     job_action      => l_cmd,
-                                    comments        => NULL);
-      SYS.DBMS_SCHEDULER.SET_ATTRIBUTE(name      => I_job_name,
-                                       attribute => 'RESTARTABLE',
-                                       value     => FALSE);
-      SYS.DBMS_SCHEDULER.SET_ATTRIBUTE(name      => I_job_name,
-                                       attribute => 'LOGGING_LEVEL',
-                                       value     => SYS.DBMS_SCHEDULER.LOGGING_OFF);
-      SYS.DBMS_SCHEDULER.SET_ATTRIBUTE_NULL(name      => I_job_name,
-                                            attribute => 'MAX_FAILURES');
-      SYS.DBMS_SCHEDULER.SET_ATTRIBUTE_NULL(name      => I_job_name,
-                                            attribute => 'MAX_RUNS');
+                                    enabled         => false,
+                                    auto_drop       => false);
+    
       BEGIN
         SYS.DBMS_SCHEDULER.SET_ATTRIBUTE(name      => I_job_name,
                                          attribute => 'STOP_ON_WINDOW_CLOSE',
@@ -219,22 +231,45 @@ if __name__ == '__main__':
         WHEN OTHERS THEN
           NULL;
       END;
-      SYS.DBMS_SCHEDULER.SET_ATTRIBUTE(name      => I_job_name,
-                                       attribute => 'JOB_PRIORITY',
-                                       value     => 3);
-      SYS.DBMS_SCHEDULER.SET_ATTRIBUTE_NULL(name      => I_job_name,
-                                            attribute => 'SCHEDULE_LIMIT');
-      SYS.DBMS_SCHEDULER.SET_ATTRIBUTE(name      => I_job_name,
-                                       attribute => 'AUTO_DROP',
-                                       value     => FALSE);
+    
       SYS.DBMS_SCHEDULER.ENABLE(name => I_job_name);
-    END;
+    
+    else
+    
+      SYS.DBMS_SCHEDULER.create_job(job_name            => I_job_name,
+                                    start_date          => sysdate +
+                                                           5 / 24 / 60 / 60,
+                                    repeat_interval     => 'Freq=Secondly;Interval=5',
+                                    end_date            => NULL,
+                                    job_type            => 'EXECUTABLE',
+                                    job_action          => '/bin/sh',
+                                    number_of_arguments => 2,
+                                    enabled             => false,
+                                    auto_drop           => false);
+      SYS.DBMS_SCHEDULER.set_job_argument_value(I_job_name, 1, '-c');
+      SYS.DBMS_SCHEDULER.set_job_argument_value(I_job_name,
+                                                2,
+                                                '#!/bin/bash' || chr(10) ||
+                                                l_cmd || chr(10) ||
+                                                'exit 0');
+      BEGIN
+        SYS.DBMS_SCHEDULER.SET_ATTRIBUTE(name      => I_job_name,
+                                         attribute => 'STOP_ON_WINDOW_CLOSE',
+                                         value     => FALSE);
+      EXCEPTION
+        -- could fail if program is of type EXECUTABLE...
+        WHEN OTHERS THEN
+          NULL;
+      END;
+      SYS.DBMS_SCHEDULER.ENABLE(name => I_job_name);
+    
+    end if;
   
   EXCEPTION
     WHEN OTHERS THEN
       raise;
   END;
-  
+
   FUNCTION Clob2Blob(v_blob_in IN CLOB) RETURN BLOB IS
   
     v_file_clob    BLOB;
@@ -295,25 +330,33 @@ if __name__ == '__main__':
                                 'port123321',
                                 G_service_port);
   
-    clob2file('pass;', G_PY_FILE_dir, 'running.py');
+    --clob2file('pass;', G_PY_FILE_dir, 'running.py');
     clob2file(l_service_Script, G_PY_FILE_dir, G_service_NAME);
-    l_cmd := G_OS_PYEXE_PATH || ' ' || get_os_dir || '\' || G_service_NAME;
-    os_cmd(G_PY_FILE_dir, l_cmd, G_service_NAME);
+    l_cmd := G_OS_PYEXE_PATH || ' ' || get_os_dir || case
+               when get_os_type = 'windows' then
+                '\'
+               else
+                '/'
+             end || G_service_NAME;
+    os_cmd(l_cmd, G_service_NAME);
   end;
 
   procedure stop_service is
+    l_resp varchar2(4000);
   begin
+    SYS.DBMS_SCHEDULER.SET_ATTRIBUTE(name      => G_service_NAME,
+                                     attribute => 'END_DATE',
+                                     value     => sysdate);
     begin
-      utl_file.fremove(G_PY_FILE_dir, 'running.py');
-      dbms_lock.sleep(5);
+      l_resp := utl_http.request('http://localhost:' || G_service_port ||
+                                 '/shutdown');
+      dbms_output.put_line(l_resp);
     exception
-      when invalid_filename then
-        null;
-      when invalid_path then
-        null;
-      when invalid_operation then
+      WHEN OTHERS then
         null;
     end;
+  
+    dbms_lock.sleep(5);
     begin
       dbms_scheduler.drop_job(G_service_NAME);
     exception
@@ -427,6 +470,10 @@ if __name__ == '__main__':
     dbms_lob.append(l_param, url_decode_clob(i_data));
     l_resp := post('http://localhost:' || G_service_port || '/func',
                    l_param);
+    if l_resp like 'ORA-29273%' then
+      Raise_application_error(-20000,
+                              'service is not running ,please execute pl4py.start_service');
+    end if;
     return l_resp;
   end;
 
