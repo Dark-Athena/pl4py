@@ -30,7 +30,7 @@ flask动态从文件加载python函数，并将参数数据传入函数，获得
 #### 第一步
 在数据库操作系统上安装python程序，并安装flask包，建议py3，py2没有测试  
 ```bat
-pip install flask
+pip3 install flask
 ```
 
 #### 第二步
