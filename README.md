@@ -6,7 +6,7 @@ after install ,you can create python function and use it without logging db'OS  
 WARNING: This is a development pkg. Do not use it in a production deployment  .   
 
  Requirements:
- - Operating System :windows   
+ - Operating System :windows   (2021-11-01 add linux(/bin/sh))
  - Python Version:python 3 at least   
  - Oracle Database Release : 10g at least  
 
@@ -16,7 +16,7 @@ WARNING: This is a development pkg. Do not use it in a production deployment  .
 请确保oracle数据库版本至少为10g  
 数据库操作系统上需要安装python  
 为了避免一些不可控的情况，需要在程序中提前手工指定python主程序的全路径  
-目前只在windows环境中测试通过  
+目前只在windows环境中测试通过  (2011-11-01增加了linux环境的支持)
 
 #### 原理：  
 使用schedule_job启动python的flask服务(主要为避免登录到操作系统进行操作，能让开发人员实现纯数据库内操作)  
@@ -147,5 +147,6 @@ end;
 
 ## 注意事项:
 1. 服务被设计成长期运行的schedule_job，函数动态切换，因此除非要完全停止或者检查问题，一般不需要执行 PL4PY.stop_service
-2. i_func_name参数必须带后缀 ".py"
+2. i_func_name参数必须带后缀 ".py"  
+3. 视图 "pl4py_func_list_v"提供自定义python函数脚本内容的查询  
 
