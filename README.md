@@ -81,7 +81,8 @@ END;
 
 #### 三、使用函数
 ```sql
-select  pl4py.call_func_Eval('sample_f.py', '8') r from dual;
+select  pl4py.call_func_Eval('sample_f.py', '8') r 
+    from dual;
 
 64
 ```
@@ -119,7 +120,8 @@ def forecast_speed(hour):
 }');
 END;
 
-select pl4py.call_func_Eval(i_func_name =>'forecast_speed.py', i_data=>'11') r from dual
+select pl4py.call_func_Eval(i_func_name =>'forecast_speed.py', i_data=>'11') r 
+    from dual;
 
 {"speed": 65.03276500414789}
 ```
