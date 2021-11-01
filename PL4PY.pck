@@ -344,9 +344,14 @@ if __name__ == '__main__':
   procedure stop_service is
     l_resp varchar2(4000);
   begin
-    SYS.DBMS_SCHEDULER.SET_ATTRIBUTE(name      => G_service_NAME,
-                                     attribute => 'END_DATE',
-                                     value     => sysdate);
+    begin
+      SYS.DBMS_SCHEDULER.SET_ATTRIBUTE(name      => G_service_NAME,
+                                       attribute => 'END_DATE',
+                                       value     => sysdate);
+    exception
+      WHEN OTHERS then
+        null;
+    end;
     begin
       l_resp := utl_http.request('http://localhost:' || G_service_port ||
                                  '/shutdown');
