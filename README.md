@@ -10,9 +10,10 @@ WARNING: This is a development pkg. Do not use it in a production deployment  .
  - Python Version:python 3 at least   
  - Oracle Database Release : 10g at least  
 
-使用本程序，你可以在oracle数据库中使用自定义python函数
+安装此组件后，你可以在数据库中创建并且使用自定义函数，并自由开启关闭此服务，使用过程无需登录数据库的操作系统   
+   
 （不是21c版本中的OML4PY [【ORACLE】在ORACLE数据库中启用机器学习功能（OML）以支持PYTHON脚本的运行](https://www.darkathena.top/archives/oml4py-server-setup) ）  
-安装此组件后，你可以在数据库中创建并且使用自定义函数，并自由开启关闭此服务，使用过程无需登录数据库的操作系统
+   
 这是开发中的版本，请勿用于生产环境  
 请确保oracle数据库版本至少为10g  
 数据库操作系统上需要安装python  
