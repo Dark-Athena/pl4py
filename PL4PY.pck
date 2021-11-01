@@ -30,7 +30,7 @@ create or replace package PL4PY is
      See the License for the specific language governing permissions and
      limitations under the License.
   */
-  G_OS_PYEXE_PATH VARCHAR2(200) := 'C:\Users\wangyongyu\AppData\Local\Programs\Python\Python39\python.exe';--'/bin/python3'
+  G_OS_PYEXE_PATH VARCHAR2(200) := 'C:\Users\darkathena\AppData\Local\Programs\Python\Python39\python.exe';--'/bin/python3'
   G_service_NAME  VARCHAR2(20) := 'py_http_service';
   G_service_port  number := 8888;
   G_forbid        varchar2(1) := 'Y';
