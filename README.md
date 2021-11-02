@@ -20,7 +20,7 @@ WARNING: This is a development pkg. Do not use it in a production deployment  .
 为了避免一些不可控的情况，需要在程序中提前手工指定python主程序的全路径  
 目前只在windows环境中测试通过  (2011-11-01增加了linux环境的支持)
 
-#### 原理：  
+#### 原理：    
 使用schedule_job启动python的flask服务(主要为避免登录到操作系统进行操作，能让开发人员实现纯数据库内操作)  
 通过utl_file包将用户自定义函数生成py文件保存到操作系统  
 使用utl_http包发送请求到flask，传入函数名称及参数数据  
